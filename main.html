@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎙️ Voice AI Suite - Live Captions</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ... (All your existing CSS from the previous version) ... */
+        :root {
+            /* Light Theme (Default) */
+            --primary-color: #7c3aed; --primary-hover: #6d28d9; --secondary-color: #ec4899;
+            --dark-color: #1e293b; --light-color: #f8fafc; --bg-color: #f9fafb;
+            --bg-gradient: linear-gradient(135deg, #f9fafb 0%, #f1f5f9 100%);
+            --container-bg: white; --card-bg: white; --text-color: #1e293b;
+            --text-muted: #64748b; --border-color: #e2e8f0; --input-bg: #f8fafc;
+            --status-bg: #f8fafc; --result-bg: #f8fafc; --tab-bg: #f8fafc;
+            --tab-active-bg: white; --tab-active-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --border-radius: 12px; --transition: all 0.3s ease;
+            --danger-color: #ef4444; --danger-hover: #dc2626;
+            --caption-lang-badge-bg: #cbd5e1;
+            --caption-lang-badge-text: #475569;
+        }
+        [data-theme="dark"] {
+            --primary-color: #8b5cf6; --primary-hover: #7c3aed; --secondary-color: #ec4899;
+            --dark-color: #f8fafc; --light-color: #1e293b; --bg-color: #0f172a;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --container-bg: #1e293b; --card-bg: #1e293b; --text-color: #f8fafc;
+            --text-muted: #94a3b8; --border-color: #334155; --input-bg: #0f172a;
+            --status-bg: #0f172a; --result-bg: #0f172a; --tab-bg: #0f172a;
+            --tab-active-bg: #1e293b; --tab-active-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+            --danger-color: #f87171; --danger-hover: #ef4444;
+            --caption-lang-badge-bg: #334155;
+            --caption-lang-badge-text: #e2e8f0;
+        }
+        body {font-family: 'Segoe UI', sans-serif; background: var(--bg-gradient); color: var(--text-color); padding:0; margin:0; min-height:100vh; transition: background 0.3s ease;}
+        .app-container {max-width:1200px; margin:2rem auto; padding:2rem; background-color:var(--container-bg); box-shadow:var(--box-shadow); border-radius:var(--border-radius); transition:background-color 0.3s ease, box-shadow 0.3s ease;}
+        .app-header {display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid var(--border-color);}
+        .app-title {font-weight:700; color:var(--primary-color); display:flex; align-items:center; gap:0.5rem; margin:0; transition:color 0.3s ease;}
+        .app-title i {font-size:1.5rem; color:var(--secondary-color); background:rgba(236,72,153,0.1); padding:0.5rem; border-radius:50%; transition:color 0.3s ease, background 0.3s ease;}
+        .app-controls {display:flex; align-items:center; gap:1rem;}
+        .mic-selector {background-color:var(--container-bg); border:1px solid var(--border-color); padding:0.5rem 1rem; border-radius:var(--border-radius); box-shadow:0 1px 3px rgba(0,0,0,0.1); display:flex; align-items:center; transition:var(--transition);}
+        .mic-selector:hover {border-color:var(--primary-color); box-shadow:0 2px 5px rgba(124,58,237,0.2);}
+        .mic-selector label {margin-right:0.75rem; font-weight:600; color:var(--primary-color); transition:color 0.3s ease;}
+        .mic-selector select {border:none; padding:0.25rem 0.5rem; border-radius:6px; background-color:var(--input-bg); color:var(--text-color); font-weight:500; transition:background-color 0.3s ease, color 0.3s ease; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+        .custom-tabs {display:flex; background-color:var(--tab-bg); border-radius:var(--border-radius); padding:0.5rem; margin-bottom:1.5rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); transition:background-color 0.3s ease;}
+        .custom-tab {flex:1; text-align:center; padding:1rem; cursor:pointer; border-radius:var(--border-radius); font-weight:600; transition:var(--transition); display:flex; align-items:center; justify-content:center; gap:0.5rem; color:var(--text-color);}
+        .custom-tab.active {background-color:var(--tab-active-bg); box-shadow:var(--tab-active-shadow); color:var(--primary-color);}
+        .custom-tab:not(.active):hover {background-color:rgba(124,58,237,0.1);}
+        .custom-tab i {font-size:1.1rem;}
+        .tab-content {background-color:var(--container-bg); border-radius:var(--border-radius); padding:2rem; box-shadow:var(--box-shadow); min-height:400px; transition:background-color 0.3s ease, box-shadow 0.3s ease;}
+        .mode-description {color:var(--text-muted); margin-bottom:1.5rem; padding:0.75rem 1rem; border-left:3px solid var(--primary-color); background-color:rgba(124,58,237,0.05); border-radius:0 var(--border-radius) var(--border-radius) 0; transition:color 0.3s ease, background-color 0.3s ease;}
+        .action-button {display:flex; align-items:center; justify-content:center; gap:0.5rem; padding:0.75rem 1.5rem; border-radius:var(--border-radius); font-weight:600; transition:var(--transition); border:none; cursor:pointer; width:100%;}
+        .primary-button {background:linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%); color:white; box-shadow:0 4px 6px -1px rgba(124,58,237,0.2);}
+        .primary-button:hover:not(:disabled) {background:linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-color) 100%); transform:translateY(-2px); box-shadow:0 6px 8px -1px rgba(124,58,237,0.3);}
+        .success-button {background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:white; box-shadow:0 4px 6px -1px rgba(16,185,129,0.2);}
+        .success-button:hover:not(:disabled) {background:linear-gradient(135deg, #059669 0%, #10b981 100%); transform:translateY(-2px); box-shadow:0 6px 8px -1px rgba(16,185,129,0.3);}
+        .danger-button {background:linear-gradient(135deg, var(--danger-color) 0%, var(--danger-hover) 100%); color:white; box-shadow:0 4px 6px -1px rgba(239,68,68,0.2);}
+        .danger-button:hover:not(:disabled) {background:linear-gradient(135deg, var(--danger-hover) 0%, var(--danger-color) 100%); transform:translateY(-2px); box-shadow:0 6px 8px -1px rgba(239,68,68,0.3);}
+        .action-button:disabled {opacity:0.7; cursor:not-allowed;}
+        .status-card {background-color:var(--status-bg); border-radius:var(--border-radius); padding:1rem; min-height:60px; box-shadow:0 1px 3px rgba(0,0,0,0.1); transition:var(--transition); display:flex; align-items:center; color:var(--text-color); word-break:break-word;}
+        .status-card.alert-info {background-color:rgba(59,130,246,0.1); border-left:4px solid #3b82f6;}
+        .status-card.alert-success {background-color:rgba(16,185,129,0.1); border-left:4px solid #10b981;}
+        .status-card.alert-warning {background-color:rgba(245,158,11,0.1); border-left:4px solid #f59e0b;}
+        .status-card.alert-danger {background-color:rgba(239,68,68,0.1); border-left:4px solid #ef4444;}
+        .result-box {margin-top:1rem; padding:1rem; background-color:var(--result-bg); border-radius:var(--border-radius); font-style:italic; color:var(--text-muted); word-break:break-word; border-left:3px solid var(--text-muted); transition:background-color 0.3s ease, color 0.3s ease;}
+        .language-selector-container {margin-bottom:1.5rem;}
+        .form-control, .form-select {border-radius:var(--border-radius); padding:0.75rem; border:1px solid var(--border-color); transition:var(--transition); background-color:var(--input-bg); color:var(--text-color);}
+        .form-control:focus, .form-select:focus {border-color:var(--primary-color); box-shadow:0 0 0 3px rgba(124,58,237,0.2);}
+        .form-control:disabled {background-color:var(--input-bg); opacity:0.8; color:var(--text-muted);}
+        .card {border:none; border-radius:var(--border-radius); box-shadow:var(--box-shadow); height:100%; transition:var(--transition); overflow:hidden; background-color:var(--card-bg);}
+        .card:hover {box-shadow:0 15px 20px -3px rgba(0,0,0,0.1), 0 6px 8px -2px rgba(0,0,0,0.05); transform:translateY(-3px);}
+        .card-header {background:linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%); color:white; border-radius:var(--border-radius) var(--border-radius) 0 0 !important; padding:1rem; font-weight:600; border:none;}
+        .card-body {padding:1.5rem; color:var(--text-color); transition:color 0.3s ease;}
+        .app-footer {text-align:center; margin-top:2rem; padding-top:1rem; border-top:1px solid var(--border-color); color:var(--text-muted); transition:color 0.3s ease, border-color 0.3s ease;}
+        @media (max-width:768px) {.app-container {padding:1rem; margin-top:1rem; margin-bottom:1rem;} .app-header {flex-direction:column; gap:1rem;} .app-controls {flex-direction:column; width:100%;} .mic-selector {width:100%;} .custom-tab {padding:0.75rem 0.5rem; font-size:0.9rem;}}
+        @keyframes pulse {0% {box-shadow:0 0 0 0 rgba(239,68,68,0.7);} 70% {box-shadow:0 0 0 10px rgba(239,68,68,0);} 100% {box-shadow:0 0 0 0 rgba(239,68,68,0);}}
+        .recording {animation:pulse 1.5s infinite; border-left-color:#ef4444 !important;}
+        .spinner {width:20px; height:20px; border:3px solid rgba(255,255,255,0.3); border-radius:50%; border-top-color:white; animation:spin 1s ease-in-out infinite; margin-right:0.5rem;}
+        @keyframes spin {to {transform:rotate(360deg);}}
+        .d-none {display:none !important;}
+        .custom-select-wrapper {position:relative; width:100%;}
+        .custom-select-wrapper select {width:100%; padding:0.75rem; border-radius:var(--border-radius); border:1px solid var(--border-color); background-color:var(--input-bg); appearance:none; -webkit-appearance:none; -moz-appearance:none; cursor:pointer; font-weight:500; transition:var(--transition); color:var(--text-color);}
+        .custom-select-wrapper select:focus {border-color:var(--primary-color); box-shadow:0 0 0 3px rgba(124,58,237,0.2); outline:none;}
+        .custom-select-wrapper::after {content:'\f078'; font-family:'Font Awesome 6 Free'; font-weight:900; position:absolute; right:15px; top:50%; transform:translateY(-50%); color:var(--primary-color); pointer-events:none;}
+        .form-label {font-weight:600; color:var(--text-color); margin-bottom:0.5rem; display:block; transition:color 0.3s ease;}
+        .badge-keyword {background-color:var(--secondary-color); color:white; padding:0.25em 0.6em; border-radius:var(--border-radius); font-size:0.8em; font-weight:500; margin:0.2rem; display:inline-block; text-decoration:none;}
+        .badge-keyword:hover {background-color:var(--primary-color); transform:translateY(-1px);}
+        .theme-switch {position:relative; display:inline-block; width:60px; height:30px;}
+        .theme-switch input {opacity:0; width:0; height:0;}
+        .theme-slider {position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:#ccc; transition:.4s; border-radius:30px; display:flex; align-items:center; justify-content:space-between; padding:0 5px;}
+        .theme-slider:before {position:absolute; content:""; height:22px; width:22px; left:4px; bottom:4px; background-color:white; transition:.4s; border-radius:50%; z-index:2;}
+        input:checked + .theme-slider {background-color:var(--primary-color);}
+        input:focus + .theme-slider {box-shadow:0 0 1px var(--primary-color);}
+        input:checked + .theme-slider:before {transform:translateX(30px);}
+        .theme-slider .sun-icon, .theme-slider .moon-icon {color:white; font-size:14px; z-index:1;}
+        .theme-slider .sun-icon {margin-left:auto;}
+        .theme-switch-label {display:flex; align-items:center; gap:0.5rem; font-weight:600; color:var(--text-color); transition:color 0.3s ease;}
+        
+        #captionsContainer {background-color:var(--input-bg); border:1px solid var(--border-color); border-radius:var(--border-radius); padding:1rem; max-height:400px; overflow-y:auto; margin-bottom:1rem; scroll-behavior: smooth;}
+        .caption-entry {padding:0.5rem; border-bottom:1px dashed var(--border-color); transition:background-color 0.3s ease; display: flex; align-items: flex-start; gap: 0.5em;}
+        .caption-entry:last-child {border-bottom:none;}
+        .caption-entry:hover {background-color:rgba(124,58,237,0.05);}
+        .caption-timestamp {font-weight:bold; color:var(--primary-color); font-size:0.85em; white-space: nowrap;}
+        .caption-lang-badge {
+            font-size: 0.7em; padding: 0.1em 0.4em; border-radius: 4px; 
+            background-color: var(--caption-lang-badge-bg); color: var(--caption-lang-badge-text);
+            margin-right: 0.5em; text-transform: uppercase; font-weight: 600;
+        }
+        .caption-text { flex-grow: 1; line-height: 1.4;}
+        .caption-text .keyword-link {color:var(--secondary-color); text-decoration:underline; font-weight:500;}
+        .caption-text .keyword-link:hover {color:var(--primary-hover);}
+        .highlight-caption {background-color:rgba(236,72,153,0.2) !important; animation:flashHighlight 1.5s ease-out;}
+        @keyframes flashHighlight {0% {background-color:rgba(236,72,153,0.4);} 100% {background-color:rgba(236,72,153,0.2);}}
+        #keywordsSummaryContainer {background-color:var(--input-bg); border:1px solid var(--border-color); border-radius:var(--border-radius); padding:1rem; min-height:100px; max-height:380px; overflow-y:auto;}
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="app-title"><i class="fas fa-headset"></i> Voice AI Suite</h1>
+            <div class="app-controls">
+                <div class="theme-switch-label">
+                    <label class="theme-switch" for="themeToggle">
+                        <input type="checkbox" id="themeToggle">
+                        <span class="theme-slider"><i class="fas fa-moon moon-icon"></i><i class="fas fa-sun sun-icon"></i></span>
+                    </label>
+                    <span id="themeLabel">Light Mode</span>
+                </div>
+                <div class="mic-selector">
+                    <label for="micSelect"><i class="fas fa-microphone-alt me-1"></i> Mic:</label>
+                    <select id="micSelect" aria-label="Select Microphone"><option selected value="">Loading mics...</option></select>
+                </div>
+            </div>
+        </header>
+        <div class="custom-tabs" role="tablist">
+            <div class="custom-tab active" id="command-tab" role="tab" aria-selected="true"><i class="fas fa-bolt"></i> Commands</div>
+            <div class="custom-tab" id="stt-tab" role="tab" aria-selected="false"><i class="fas fa-language"></i> STT & Translate</div>
+            <div class="custom-tab" id="live-caption-tab" role="tab" aria-selected="false"><i class="fas fa-comments"></i> Live Captions</div>
+        </div>
+
+        <div class="tab-content">
+            <!-- Command Mode Pane -->
+            <div class="tab-pane active" id="command-mode" role="tabpanel">
+                <p class="mode-description"><i class="fas fa-info-circle me-2"></i>Listens for intents. Actions run on server. For navigation, use phrases like "take me where I said [your keyword]".</p>
+                <div class="language-selector-container">
+                    <label class="form-label" for="commandLangSelect">Command Language (for Intent Matching):</label>
+                    <div class="custom-select-wrapper">
+                        <select id="commandLangSelect" class="form-select"><option value="">Loading languages...</option></select>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <button id="listenCmdBtn" class="action-button primary-button" type="button">
+                            <div id="listenCmdBtnSpinner" class="spinner d-none"></div><i class="fas fa-play me-1"></i> Listen for Intent
+                        </button>
+                    </div>
+                    <div class="col-md-8">
+                        <div id="cmdStatus" class="status-card"><i class="fas fa-headphones me-2"></i>Waiting for command/intent...</div>
+                        <div id="cmdResult" class="result-box" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STT & Translate Pane -->
+            <div class="tab-pane" id="stt-mode" role="tabpanel" style="display: none;">
+                 <p class="mode-description"><i class="fas fa-info-circle me-2"></i>Listens for speech, then translates. Select "Auto-Detect" for STT language if unsure.</p>
+                <div class="row g-4">
+                    <div class="col-md-6"><div class="card h-100"><div class="card-header"><i class="fas fa-microphone me-2"></i>Record Speech</div><div class="card-body d-flex flex-column"><div class="language-selector-container"><label class="form-label" for="sttLangSelect">Spoken Language (or Auto-Detect):</label><div class="custom-select-wrapper"><select id="sttLangSelect" class="form-select"><option value="">Loading...</option></select></div></div><button id="recordSttBtn" class="action-button primary-button mb-3" type="button"><div id="recordSttBtnSpinner" class="spinner d-none"></div><i class="fas fa-microphone me-1"></i> Record Speech</button><div id="sttStatus" class="status-card"><i class="fas fa-headphones me-2"></i>Waiting to record...</div></div></div></div>
+                    <div class="col-md-6"><div class="card h-100"><div class="card-header"><i class="fas fa-language me-2"></i>Review & Translate</div><div class="card-body d-flex flex-column"><div class="mb-3"><label for="originalText" class="form-label">Recognized Text:</label><textarea class="form-control" id="originalText" rows="3" readonly disabled></textarea></div><div class="mb-3"><label for="targetLangSelect" class="form-label">Translate to:</label><div class="custom-select-wrapper"><select id="targetLangSelect" class="form-select" disabled><option value="">-- Loading --</option></select></div></div><button id="translateBtn" class="action-button success-button mb-3" type="button" disabled><div id="translateBtnSpinner" class="spinner d-none"></div><i class="fas fa-globe me-1"></i> Translate</button><div id="translateStatus" class="status-card mb-3"><i class="fas fa-info-circle me-2"></i>Translation status...</div><div class="mb-3 flex-grow-1"><label for="translatedText" class="form-label">Translated Text:</label><textarea class="form-control h-100" id="translatedText" rows="3" readonly disabled></textarea></div></div></div></div>
+                </div>
+            </div>
+            
+            <!-- Live Caption Pane -->
+            <div class="tab-pane" id="live-caption-mode" role="tabpanel" style="display: none;">
+                <p class="mode-description"><i class="fas fa-info-circle me-2"></i>Near real-time meeting captions. Whisper auto-detects language. Selecting a language below provides a hint.</p>
+                <div class="row mb-3 g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label" for="captionLangSelect">Primary Language Hint (for Whisper):</label>
+                        <div class="custom-select-wrapper">
+                            <select id="captionLangSelect" class="form-select"><option value="">Loading languages...</option></select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                         <button id="startCaptionBtn" class="action-button primary-button w-100" type="button">
+                            <div id="startCaptionBtnSpinner" class="spinner d-none"></div>
+                            <i class="fas fa-play me-1"></i> Start Captions
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button id="stopCaptionBtn" class="action-button danger-button w-100" type="button" disabled>
+                             <i class="fas fa-stop me-1"></i> Stop Captions
+                        </button>
+                    </div>
+                </div>
+                <div id="liveCaptionStatus" class="status-card mb-3"><i class="fas fa-info-circle me-2"></i>Ready. Select language hint & mic, then start.</div>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <h5><i class="fas fa-comment-dots me-1"></i> Live Transcript:</h5>
+                        <div id="captionsContainer"><em id="captionsPlaceholder" class="text-muted p-3">Captions will appear here...</em></div>
+                    </div>
+                    <div class="col-md-4">
+                        <h5><i class="fas fa-key me-1"></i> Keywords:</h5>
+                        <div id="keywordsSummaryContainer"><em id="keywordsPlaceholder" class="text-muted p-3">Keywords will appear here...</em></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE_URL = "http://localhost:5001";
+
+        // DOM Elements (same as before)
+        const micSelect = document.getElementById('micSelect');
+        const listenCmdBtn = document.getElementById('listenCmdBtn'); const listenCmdBtnSpinner = document.getElementById('listenCmdBtnSpinner');
+        const cmdStatus = document.getElementById('cmdStatus'); const cmdResult = document.getElementById('cmdResult');
+        const commandLangSelect = document.getElementById('commandLangSelect');
+        const recordSttBtn = document.getElementById('recordSttBtn'); const recordSttBtnSpinner = document.getElementById('recordSttBtnSpinner');
+        const sttStatus = document.getElementById('sttStatus'); const originalTextArea = document.getElementById('originalText');
+        const sttLangSelect = document.getElementById('sttLangSelect'); const targetLangSelect = document.getElementById('targetLangSelect');
+        const translateBtn = document.getElementById('translateBtn'); const translateBtnSpinner = document.getElementById('translateBtnSpinner');
+        const translateStatus = document.getElementById('translateStatus'); const translatedTextArea = document.getElementById('translatedText');
+        const captionLangSelect = document.getElementById('captionLangSelect');
+        const startCaptionBtn = document.getElementById('startCaptionBtn'); const startCaptionBtnSpinner = document.getElementById('startCaptionBtnSpinner');
+        const stopCaptionBtn = document.getElementById('stopCaptionBtn'); const liveCaptionStatus = document.getElementById('liveCaptionStatus');
+        const captionsContainer = document.getElementById('captionsContainer'); const captionsPlaceholder = document.getElementById('captionsPlaceholder');
+        const keywordsSummaryContainer = document.getElementById('keywordsSummaryContainer'); const keywordsPlaceholder = document.getElementById('keywordsPlaceholder');
+        const commandTab = document.getElementById('command-tab'); const sttTab = document.getElementById('stt-tab'); const liveCaptionTab = document.getElementById('live-caption-tab');
+        const commandPane = document.getElementById('command-mode'); const sttPane = document.getElementById('stt-mode'); const liveCaptionPane = document.getElementById('live-caption-mode');
+        const themeToggle = document.getElementById('themeToggle'); const themeLabel = document.getElementById('themeLabel');
+
+        let isCaptioning = false; let captionPollInterval; let lastCaptionCount = 0;
+
+        // Theme Management (same)
+        function setTheme(isDark) {document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light'); themeToggle.checked = isDark; themeLabel.textContent = isDark ? 'Dark Mode' : 'Light Mode'; localStorage.setItem('theme', isDark ? 'dark' : 'light');}
+        function initTheme() {const savedTheme = localStorage.getItem('theme'); if (savedTheme) setTheme(savedTheme === 'dark'); else setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);}
+
+        // Helper: Show Status (same)
+        function showStatus(element, message, type = 'info', isLoading = false, buttonSpinnerElement = null) {element.innerHTML = ''; const icon = document.createElement('i'); icon.className = 'me-2 fas '; switch (type) {case 'success': icon.className += 'fa-check-circle'; break; case 'warning': icon.className += 'fa-exclamation-triangle'; break; case 'danger': icon.className += 'fa-times-circle'; break; default: icon.className += 'fa-info-circle';} element.appendChild(icon); element.appendChild(document.createTextNode(message)); element.className = `status-card alert-${type}`; if (buttonSpinnerElement) buttonSpinnerElement.classList.toggle('d-none', !isLoading); element.classList.toggle('recording', isLoading && (element === cmdStatus || element === sttStatus || element === liveCaptionStatus));}
+        function clearStatus(element, defaultMessage = 'Waiting...') {element.innerHTML = ''; const icon = document.createElement('i'); icon.className = 'fas fa-headphones me-2'; element.appendChild(icon); element.appendChild(document.createTextNode(defaultMessage)); element.className = 'status-card'; element.classList.remove('recording');}
+        
+        // Helper: Fetch API (same)
+        async function fetchAPI(endpoint, method = 'GET', body = null, showGenericErrorIn = null) {const url = `${API_BASE_URL}${endpoint}`; const options = {method, headers: {'Content-Type': 'application/json'}}; if (body) options.body = JSON.stringify(body); try {const response = await fetch(url, options); const responseData = await response.json(); if (!response.ok) {const error = new Error(responseData.message || `HTTP error! Status: ${response.status}`); error.status = response.status; error.responseData = responseData; throw error;} return responseData;} catch (error) {console.error(`API Error (${endpoint}):`, error.message, error.responseData || error); if (showGenericErrorIn) {showStatus(showGenericErrorIn, `Error: ${error.message}`, 'danger');} throw error;}}
+
+        // Tab Management (same)
+        function setupTabs() {const tabs = [commandTab, sttTab, liveCaptionTab]; const panes = [commandPane, sttPane, liveCaptionPane]; tabs.forEach((tab, index) => {tab.addEventListener('click', () => {tabs.forEach(t => {t.classList.remove('active'); t.setAttribute('aria-selected', 'false');}); panes.forEach(p => p.style.display = 'none'); tab.classList.add('active'); tab.setAttribute('aria-selected', 'true'); panes[index].style.display = 'block';});});}
+        
+        // Language & Mic Population (modified to handle "Auto-Detect" correctly)
+        async function fetchAndPopulateLanguages() {
+            try {
+                const data = await fetchAPI('/api/languages');
+                if (data.status === 'success' && data.languages?.length) {
+                    [commandLangSelect, sttLangSelect, targetLangSelect, captionLangSelect].forEach(sel => sel.innerHTML = '');
+                    
+                    const defaultTargetOpt = document.createElement('option');
+                    defaultTargetOpt.value = ""; defaultTargetOpt.textContent = "-- Select Language --";
+                    targetLangSelect.appendChild(defaultTargetOpt);
+
+                    data.languages.forEach(lang => {
+                        // For captionLangSelect, "Auto-Detect" (value="") is already added by backend
+                        // For sttLangSelect, also add "Auto-Detect"
+                        if (lang.key === "" && (sttLangSelect.options.length === 0 || captionLangSelect.options.length ===0) ) { // Add Auto-Detect once for STT and Caption
+                             const autoOptSTT = document.createElement('option');
+                             autoOptSTT.value = ""; autoOptSTT.textContent = lang.name; // "Auto-Detect (Whisper)"
+                             sttLangSelect.appendChild(autoOptSTT);
+                             
+                             const autoOptCaption = document.createElement('option');
+                             autoOptCaption.value = ""; autoOptCaption.textContent = lang.name;
+                             captionLangSelect.appendChild(autoOptCaption); // Added by backend, but good to ensure if not
+                        }
+
+                        if (lang.key !== "") { // Don't add regular "" option if it's the Auto-Detect placeholder
+                            [commandLangSelect, sttLangSelect, captionLangSelect].forEach(sel => {
+                                if (sel === captionLangSelect && lang.key === "") return; // Skip adding "" again if it's Auto-Detect from backend
+                                if (sel === sttLangSelect && lang.key === "") return; 
+
+                                const option = document.createElement('option');
+                                option.value = lang.key; option.textContent = lang.name;
+                                if (lang.key === 'english' && sel !== captionLangSelect && sel !== sttLangSelect) option.selected = true; // Default English for Command, Target
+                                else if (lang.key === '' && (sel === captionLangSelect || sel === sttLangSelect)) option.selected = true; // Default Auto-Detect for Caption, STT
+                                sel.appendChild(option);
+                            });
+                            const targetOption = document.createElement('option');
+                            targetOption.value = lang.key; targetOption.textContent = lang.name;
+                            if (lang.key === 'english') targetOption.selected = true;
+                            targetLangSelect.appendChild(targetOption);
+                        }
+                    });
+                     // Ensure Auto-Detect is selected by default for caption and STT if it exists
+                    if (captionLangSelect.querySelector('option[value=""]')) captionLangSelect.value = "";
+                    if (sttLangSelect.querySelector('option[value=""]')) sttLangSelect.value = "";
+
+
+                } else throw new Error(data.message || 'No languages found.');
+            } catch (error) {
+                const errorMsg = `Lang load fail: ${error.message}`;
+                [commandLangSelect, sttLangSelect, targetLangSelect, captionLangSelect].forEach(sel => sel.innerHTML = `<option value="" disabled>${errorMsg}</option>`);
+                showStatus(cmdStatus, errorMsg, 'danger');
+            }
+        }
+        async function fetchAndPopulateMics() { /* ... (same as before) ... */ 
+            try {
+                const data = await fetchAPI('/api/microphones', 'GET', null, cmdStatus);
+                micSelect.innerHTML = '';
+                if ((data.status === 'success' || data.status === 'warning') && data.microphones?.length) {
+                    if (data.message && data.status === 'warning') showStatus(cmdStatus, data.message, 'warning');
+                    data.microphones.forEach((mic, index) => {
+                        const option = document.createElement('option');
+                        option.value = mic.index; option.textContent = `${mic.index}: ${mic.name.substring(0,30)}${mic.name.length > 30 ? '...' : ''}`; // Truncate long mic names
+                        if (index === 0) option.selected = true;
+                        micSelect.appendChild(option);
+                    });
+                     if(data.microphones.length === 0){
+                        micSelect.innerHTML = '<option value="" disabled>No mics found</option>';
+                        showStatus(cmdStatus, 'No microphones detected.', 'danger');
+                    }
+                } else { throw new Error(data.message || 'No microphones found.'); }
+            } catch (error) { micSelect.innerHTML = '<option value="" disabled>Error loading mics</option>'; showStatus(cmdStatus, `Mic load error: ${error.message}.`, 'danger');}
+        }
+        
+        // Initialization (same)
+        document.addEventListener('DOMContentLoaded', async () => {initTheme(); themeToggle.addEventListener('change', () => setTheme(themeToggle.checked)); setupTabs(); await fetchAndPopulateMics(); await fetchAndPopulateLanguages(); setupEventListeners(); stopCaptionBtn.disabled = true; startCaptionBtn.disabled = false;});
+
+        // Event Listeners Setup (Command, STT, Translate listeners same as NLU version)
+        function setupEventListeners() {
+            listenCmdBtn.addEventListener('click', async () => { /* ... (same as previous NLU version, including NavigateToID handling) ... */
+                if (isCaptioning) { showStatus(cmdStatus, "Stop live captioning first.", 'warning'); return; }
+                const selectedMicIndex = micSelect.value; const selectedCmdLangKey = commandLangSelect.value;
+                if (!selectedCmdLangKey && selectedCmdLangKey !== "") { showStatus(cmdStatus, 'Select command language or Auto-Detect.', 'warning'); return; } // Allow "" for Auto-Detect if backend supports it for commands
+                listenCmdBtn.disabled = true; showStatus(cmdStatus, `Listening intent (${commandLangSelect.options[commandLangSelect.selectedIndex].text})...`, 'info', true, listenCmdBtnSpinner); cmdResult.innerHTML = ''; cmdResult.style.display = 'none';
+                try {
+                    const data = await fetchAPI('/api/listen_command', 'POST', { mic_index: selectedMicIndex, language_key: selectedCmdLangKey });
+                    const statusType = data.status === 'success' ? 'success' : (data.status === 'timeout' ? 'warning' : 'danger');
+                    let message = data.status === 'success' ? `Heard: "${data.recognized_text || '(nothing)'}"` : (data.message || 'Intent proc. failed.');
+                    if (data.status === 'warning' && data.recognized_text) message = `Heard: "${data.recognized_text}". Note: ${data.message}`;
+                    showStatus(cmdStatus, message, statusType, false, listenCmdBtnSpinner);
+                    if (data.action_taken || (data.status !== 'success' && data.recognized_text)) {
+                        let resultText = data.action_taken || `Heard: "${data.recognized_text}", but: ${data.message || "no specific action."}`;
+                        cmdResult.innerHTML = `<i class="fas fa-${data.status === 'success' && data.action_taken ? 'check-circle' : 'info-circle'} me-2"></i> ${resultText}`;
+                        cmdResult.style.display = 'block';
+                        const navMatch = resultText.match(/NavigateToID:(\S+)/);
+                        if (navMatch && navMatch[1]) {
+                            const captionIdToNavigate = navMatch[1];
+                            liveCaptionTab.click();
+                            setTimeout(() => { const targetEl = document.getElementById(captionIdToNavigate); if (targetEl) { targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); targetEl.classList.add('highlight-caption'); setTimeout(() => targetEl.classList.remove('highlight-caption'), 2000); showStatus(liveCaptionStatus, `Navigated to part about "${resultText.split("'")[1]}"`, "success");} else {showStatus(liveCaptionStatus, `Can't find caption ID ${captionIdToNavigate}.`, "warning");}}, 200);
+                        }
+                    }
+                } catch (error) { if (error.status === 409) {showStatus(cmdStatus, error.message, 'warning', false, listenCmdBtnSpinner);} else {showStatus(cmdStatus, `Error: ${error.message}`, 'danger', false, listenCmdBtnSpinner);}} finally {listenCmdBtn.disabled = false;}
+            });
+            recordSttBtn.addEventListener('click', async () => { /* ... (same as NLU version, ensure sttLangSelect can pass "" for auto) ... */
+                if (isCaptioning) { showStatus(sttStatus, "Stop live captioning first.", 'warning'); return; }
+                const selectedMicIndex = micSelect.value; const selectedSttLangKey = sttLangSelect.value; // "" is Auto-Detect
+                // if (!selectedSttLangKey && selectedSttLangKey !== "") { showStatus(sttStatus, 'Select spoken language or Auto-Detect.', 'warning'); return; } // No longer needed if "" is default
+                recordSttBtn.disabled = true; [originalTextArea, translatedTextArea].forEach(ta => ta.value = ''); [translateBtn, targetLangSelect, originalTextArea, translatedTextArea].forEach(el => el.disabled = true); showStatus(sttStatus, `Listening (${sttLangSelect.options[sttLangSelect.selectedIndex].text})...`, 'info', true, recordSttBtnSpinner); clearStatus(translateStatus, 'Translation status...');
+                try {
+                    const data = await fetchAPI('/api/listen_stt', 'POST', { mic_index: selectedMicIndex, language_key: selectedSttLangKey });
+                    const statusType = data.status === 'success' ? 'success' : (data.status === 'timeout' ? 'warning' : 'danger');
+                    const message = data.status === 'success' ? `Recognized: "${data.recognized_text || '(nothing)'}"` : (data.message || 'STT failed.');
+                    showStatus(sttStatus, message, statusType, false, recordSttBtnSpinner);
+                    if (data.status === 'success' && data.recognized_text) { originalTextArea.value = data.recognized_text; [translateBtn, targetLangSelect, originalTextArea].forEach(el => el.disabled = false); } 
+                    else if (data.status === 'success' && !data.recognized_text) { showStatus(sttStatus, 'Recognition OK but text empty.', 'warning', false, recordSttBtnSpinner); }
+                } catch (error) { if (error.status === 409) {showStatus(sttStatus, error.message, 'warning', false, recordSttBtnSpinner);} else {showStatus(sttStatus, `Error: ${error.message}`, 'danger', false, recordSttBtnSpinner);}} finally {recordSttBtn.disabled = false;}
+            });
+            translateBtn.addEventListener('click', async () => { /* ... (same as NLU version) ... */
+                const textToTranslate = originalTextArea.value; const targetLangKey = targetLangSelect.value;
+                if (!textToTranslate && textToTranslate !== "") {showStatus(translateStatus, 'No text to translate.', 'warning'); return;}
+                if (!targetLangKey) {showStatus(translateStatus, 'Select target language.', 'warning'); return;}
+                translateBtn.disabled = true; translatedTextArea.value = ''; translatedTextArea.disabled = true; showStatus(translateStatus, 'Translating...', 'info', true, translateBtnSpinner);
+                try {
+                    const data = await fetchAPI('/api/translate', 'POST', { text: textToTranslate, target_language_key: targetLangKey });
+                    if (data.status === 'success') { showStatus(translateStatus, `Translated to ${targetLangSelect.options[targetLangSelect.selectedIndex].text}.`, 'success', false, translateBtnSpinner); translatedTextArea.value = data.translated_text || ""; translatedTextArea.disabled = false; }
+                } catch (error) { showStatus(translateStatus, `Translate Error: ${error.message}`, 'danger', false, translateBtnSpinner); } finally { translateBtn.disabled = !originalTextArea.value && originalTextArea.value !== ""; }
+            });
+
+            // Live Captioning Listeners (Modified)
+            startCaptionBtn.addEventListener('click', async () => {
+                const selectedMicIndex = micSelect.value;
+                const selectedLangKeyHint = captionLangSelect.value; // This can be "" for auto-detect
+                
+                startCaptionBtn.disabled = true; stopCaptionBtn.disabled = true; // Disable both during transition
+                showStatus(liveCaptionStatus, `Starting captions (Hint: ${captionLangSelect.options[captionLangSelect.selectedIndex].text})...`, 'info', true, startCaptionBtnSpinner);
+                captionsContainer.innerHTML = ''; keywordsSummaryContainer.innerHTML = '';
+                if (captionsPlaceholder) captionsPlaceholder.style.display = 'block';
+                if (keywordsPlaceholder) keywordsPlaceholder.style.display = 'block';
+                lastCaptionCount = 0;
+
+                try {
+                    await fetchAPI('/api/start_captioning', 'POST', { mic_index: selectedMicIndex, language_key: selectedLangKeyHint });
+                    isCaptioning = true;
+                    stopCaptionBtn.disabled = false; // Enable stop
+                    startCaptionBtn.disabled = true; // Keep start disabled
+                    [captionLangSelect, micSelect, commandLangSelect, sttLangSelect].forEach(sel => sel.disabled = true); // Disable all lang/mic selectors
+                    listenCmdBtn.disabled = true; recordSttBtn.disabled = true; // Disable other mode buttons
+
+                    if (captionsPlaceholder) captionsPlaceholder.style.display = 'none';
+                    showStatus(liveCaptionStatus, `Captioning active... Listening (Hint: ${captionLangSelect.options[captionLangSelect.selectedIndex].text})`, 'success', true, startCaptionBtnSpinner); // Spinner stays on start btn to show it's "running"
+                    pollCaptions();
+                } catch (error) {
+                    showStatus(liveCaptionStatus, `Error starting captions: ${error.message}`, 'danger', false, startCaptionBtnSpinner);
+                    startCaptionBtn.disabled = false; // Re-enable start if failed
+                    stopCaptionBtn.disabled = true; // Ensure stop is disabled
+                }
+            });
+            stopCaptionBtn.addEventListener('click', async () => {
+                stopCaptionBtn.disabled = true; startCaptionBtn.disabled = true; // Disable both during transition
+                showStatus(liveCaptionStatus, 'Stopping captioning...', 'info', false, startCaptionBtnSpinner); // Clear spinner from start btn
+                if (captionPollInterval) clearInterval(captionPollInterval);
+                try {
+                    await fetchAPI('/api/stop_captioning', 'POST', {});
+                } catch (error) {
+                    showStatus(liveCaptionStatus, `Error during stop request: ${error.message}`, 'danger');
+                } finally { // Always run this cleanup
+                    isCaptioning = false;
+                    startCaptionBtn.disabled = false;
+                    stopCaptionBtn.disabled = true;
+                     [captionLangSelect, micSelect, commandLangSelect, sttLangSelect].forEach(sel => sel.disabled = false);
+                    listenCmdBtn.disabled = false; recordSttBtn.disabled = false;
+                    showStatus(liveCaptionStatus, 'Captioning stopped. Ready to start again or use other modes.', 'warning');
+                }
+            });
+        }
+
+        // Live Captioning Logic (Modified poll interval and renderCaptions)
+        async function pollCaptions() {
+            if (!isCaptioning) return;
+            try {
+                const data = await fetchAPI(`/api/get_captions?last_count=${lastCaptionCount}`);
+                if (data.status === 'success') {
+                    if (data.captions && data.captions.length > 0) {
+                        if (captionsPlaceholder && captionsPlaceholder.style.display !== 'none') captionsPlaceholder.style.display = 'none';
+                        renderCaptions(data.captions);
+                        lastCaptionCount = data.current_total_captions;
+                    }
+                    if (data.all_keywords) {
+                         if (keywordsPlaceholder && data.all_keywords.length > 0 && keywordsPlaceholder.style.display !== 'none') keywordsPlaceholder.style.display = 'none';
+                         else if (keywordsPlaceholder && data.all_keywords.length === 0) keywordsPlaceholder.style.display = 'block';
+                        renderKeywordsSummary(data.all_keywords);
+                    }
+                }
+            } catch (error) {
+                console.error("Error polling captions:", error);
+                // Potentially stop polling if error is critical, or show persistent error
+                // For now, if backend is down, it will just keep trying and failing.
+                if(isCaptioning) showStatus(liveCaptionStatus, `Caption polling error: ${error.message}. Retrying...`, 'warning', true, startCaptionBtnSpinner);
+            }
+            if (isCaptioning) {
+                captionPollInterval = setTimeout(pollCaptions, 800); // Faster polling (e.g., 800ms)
+            }
+        }
+        function renderCaptions(newCaptions) {
+            const fragment = document.createDocumentFragment();
+            newCaptions.forEach(caption => {
+                const captionDiv = document.createElement('div');
+                captionDiv.className = 'caption-entry';
+                captionDiv.id = caption.id;
+
+                const timeAndLangSpan = document.createElement('span');
+                timeAndLangSpan.className = 'caption-timestamp'; // Re-use class for styling consistency
+                
+                const timeNode = document.createTextNode(`[${caption.timestamp_str}] `);
+                timeAndLangSpan.appendChild(timeNode);
+
+                if (caption.detected_language && caption.detected_language !== "unknown" && caption.detected_language.length <=3) { // Show short lang codes
+                    const langBadge = document.createElement('span');
+                    langBadge.className = 'caption-lang-badge';
+                    langBadge.textContent = caption.detected_language;
+                    timeAndLangSpan.appendChild(langBadge);
+                }
+                captionDiv.appendChild(timeAndLangSpan);
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'caption-text';
+                let htmlText = caption.text;
+                if (caption.keywords && caption.keywords.length > 0) {
+                    const sortedKeywords = [...caption.keywords].sort((a, b) => b.length - a.length);
+                    sortedKeywords.forEach(kw => {
+                        const escapedKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const regex = new RegExp(`\\b(${escapedKw})\\b`, 'gi');
+                        htmlText = htmlText.replace(regex, (match) => `<a href="https://en.wikipedia.org/wiki/${encodeURIComponent(match)}" target="_blank" class="keyword-link" title="Search '${match}' on Wikipedia">${match}</a>`);
+                    });
+                }
+                textSpan.innerHTML = htmlText;
+                captionDiv.appendChild(textSpan);
+                fragment.appendChild(captionDiv);
+            });
+            captionsContainer.appendChild(fragment);
+            // Only scroll if user is near the bottom, to avoid disrupting if they scrolled up
+            if (captionsContainer.scrollHeight - captionsContainer.scrollTop - captionsContainer.clientHeight < 100) {
+                 captionsContainer.scrollTop = captionsContainer.scrollHeight;
+            }
+        }
+        function renderKeywordsSummary(allKeywords) { /* ... (same as before) ... */
+            keywordsSummaryContainer.innerHTML = ''; 
+            if (allKeywords.length === 0 && keywordsPlaceholder) {keywordsPlaceholder.style.display = 'block'; return;}
+            if (keywordsPlaceholder) keywordsPlaceholder.style.display = 'none';
+            allKeywords.forEach(kw => {
+                const keywordBadge = document.createElement('a'); keywordBadge.href = "#"; 
+                keywordBadge.className = 'badge-keyword'; keywordBadge.textContent = kw;
+                keywordBadge.title = `Ask: "navigate to ${kw}"`;
+                keywordBadge.addEventListener('click', (e) => { e.preventDefault(); showStatus(liveCaptionStatus, `To navigate, use Command mode: "go to discussion about ${kw}"`, 'info'); });
+                keywordsSummaryContainer.appendChild(keywordBadge);
+            });
+        }
+    </script>
+</body>
+</html>
