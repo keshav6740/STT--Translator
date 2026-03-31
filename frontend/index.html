@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice AI Workbench</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/app.css">
+</head>
+<body>
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
+    <div class="grid-noise"></div>
+    <div class="shell">
+        <header class="hero">
+            <div class="hero-copy-block">
+                <div class="hero-chip-row">
+                    <span class="hero-chip">real-time speech</span>
+                    <span class="hero-chip">multilingual workflow</span>
+                    <span class="hero-chip">smart transcripting</span>
+                </div>
+                <p class="eyebrow">Modern Speech Workspace</p>
+                <h1>Voice AI Workbench</h1>
+                <p class="hero-copy">A polished voice workspace for commands, transcription, translation, and live caption intelligence. Designed to feel ambitious, clear, and presentation-ready.</p>
+                <div class="hero-band">
+                    <span>voice commands</span>
+                    <span>stt capture</span>
+                    <span>translation</span>
+                    <span>transcript export</span>
+                    <span>live stream</span>
+                </div>
+            </div>
+            <div class="hero-actions">
+                <label class="field compact">
+                    <span>Microphone Input</span>
+                    <select id="micSelect"></select>
+                </label>
+                <div class="health-card">
+                    <p class="health-label">System Status</p>
+                    <strong id="healthStatus">Checking...</strong>
+                    <span id="healthMeta">Waiting for API</span>
+                </div>
+                <div class="signal-box">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <p>Signal chain armed</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="grid">
+            <section class="panel panel-wide panel-command">
+                <div class="panel-head">
+                    <div>
+                        <p class="eyebrow">Command Console</p>
+                        <h2>Speak an intent. Get a clean action.</h2>
+                    </div>
+                    <label class="field compact">
+                        <span>Command language</span>
+                        <select id="commandLangSelect"></select>
+                    </label>
+                </div>
+                <p class="panel-copy">A guided action surface for search, weather, time, folder access, navigation, and approved app launches.</p>
+                <div class="action-row">
+                    <button id="listenCmdBtn" class="button">Listen for command</button>
+                    <div id="cmdStatus" class="status">Ready for command input.</div>
+                </div>
+                <pre id="cmdResult" class="result"></pre>
+            </section>
+
+            <section class="panel panel-stt">
+                <div class="panel-head">
+                    <div>
+                        <p class="eyebrow">Speech To Text</p>
+                        <h2>Capture speech with clarity</h2>
+                    </div>
+                    <label class="field compact">
+                        <span>Spoken language</span>
+                        <select id="sttLangSelect"></select>
+                    </label>
+                </div>
+                <button id="recordSttBtn" class="button">Record speech</button>
+                <div id="sttStatus" class="status">Ready to record.</div>
+                <label class="field">
+                    <span>Recognized text</span>
+                    <textarea id="originalText" rows="6" readonly></textarea>
+                </label>
+            </section>
+
+            <section class="panel panel-translate">
+                <div class="panel-head">
+                    <div>
+                        <p class="eyebrow">Translation</p>
+                        <h2>Translate recognized text instantly</h2>
+                    </div>
+                    <label class="field compact">
+                        <span>Target language</span>
+                        <select id="targetLangSelect"></select>
+                    </label>
+                </div>
+                <button id="translateBtn" class="button accent">Translate</button>
+                <div id="translateStatus" class="status">Translation idle.</div>
+                <label class="field">
+                    <span>Translated text</span>
+                    <textarea id="translatedText" rows="6" readonly></textarea>
+                </label>
+            </section>
+
+            <section class="panel panel-wide panel-captions">
+                <div class="panel-head">
+                    <div>
+                        <p class="eyebrow">Live Captions</p>
+                        <h2>Searchable real-time transcript</h2>
+                    </div>
+                    <label class="field compact">
+                        <span>Caption language</span>
+                        <select id="captionLangSelect"></select>
+                    </label>
+                </div>
+                <div class="action-row">
+                    <button id="startCaptionBtn" class="button">Start captions</button>
+                    <button id="stopCaptionBtn" class="button ghost">Stop captions</button>
+                    <button id="exportCaptionBtn" class="button accent">Export transcript</button>
+                    <div id="liveCaptionStatus" class="status">Captioning idle.</div>
+                </div>
+                <div class="caption-layout">
+                    <div>
+                        <h3>Transcript Stream</h3>
+                        <div id="captionsContainer" class="caption-stream"></div>
+                    </div>
+                    <div>
+                        <h3>Topic Index</h3>
+                        <div id="keywordsSummaryContainer" class="keyword-grid"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="./assets/js/app.js"></script>
+</body>
+</html>

@@ -1,7 +1,5 @@
-Flask
-Flask-CORS
+flask
+flask-cors
 SpeechRecognition
 deep-translator
-PyAutoGUI
 requests
-openai-whisper
